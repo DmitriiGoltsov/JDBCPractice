@@ -2,10 +2,7 @@ package com.dvg.jdbc.starter;
 
 import org.postgresql.Driver;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.SQLOutput;
-import java.sql.Statement;
+import java.sql.*;
 
 import static com.dvg.jdbc.starter.util.ConnectionManager.openConnection;
 
@@ -15,19 +12,32 @@ public class JdbcRunner {
 
         Class<Driver> driverClass = Driver.class;
         String sqlInquiry = """
-                UPDATE info
-                SET data = 'TestTest'
-                WHERE id = 7
-                RETURNING *;
+                SELECT *
+                FROM ticket;
                 """;
 
         try (Connection psqlConnection = openConnection();
-             Statement statement = psqlConnection.createStatement()) {
+             Statement statement = psqlConnection.createStatement(
+                     ResultSet.TYPE_SCROLL_INSENSITIVE,
+                     ResultSet.CONCUR_UPDATABLE)) {
             System.out.println(psqlConnection.getSchema());
             System.out.println(psqlConnection.getTransactionIsolation());
-            int result = statement.executeUpdate(sqlInquiry);
-            System.out.println(result);
-            System.out.println(statement.getUpdateCount());
+
+            ResultSet result = statement.executeQuery(sqlInquiry);
+
+            while (result.next()) {
+                System.out.println(result.getLong("id"));
+                System.out.println(result.getString("passenger_no"));
+                System.out.println(result.getBigDecimal("cost"));
+                /* Следующие 2 строки демонстрируют возможность внутри цикла обновлять данные и
+                итерироваться в другую сторону соответственно
+
+                result.updateLong(2, 100L);
+                result.previous();
+
+                */
+                System.out.println("-------------------");
+            }
         }
 
     }
