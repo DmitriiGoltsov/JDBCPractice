@@ -15,11 +15,12 @@ public class JDBCRunnerForSQLInjection {
 //        long flightId = 2L;
 //        System.out.println(getTicketsByFlightId(flightId));
 
-        List<Long> result = getFlightsBetween(LocalDate.of(2020, 10, 1).atStartOfDay(),
+        /*List<Long> result = getFlightsBetween(LocalDate.of(2020, 10, 1).atStartOfDay(),
                 LocalDateTime.now());
 
         System.out.println(result);
-
+*/
+        checkMetaData();
     }
 
     private static List<Long> getFlightsBetween(LocalDateTime start, LocalDateTime end) throws SQLException {
@@ -80,6 +81,31 @@ public class JDBCRunnerForSQLInjection {
         }
 
         return idList;
+
+    }
+
+    private static void checkMetaData() throws SQLException {
+        try (Connection connection = ConnectionManager.openConnection()) {
+
+            DatabaseMetaData metaData = connection.getMetaData();
+            ResultSet catalogs = metaData.getCatalogs();
+
+            while (catalogs.next()) {
+                String catalog = catalogs.getString(1);// Лучше обращаться по конкретному имени каталога
+                ResultSet schemas = metaData.getSchemas();
+
+                while (schemas.next()) {
+                    String schema = schemas.getString("TABLE_SCHEM");
+                    ResultSet tables = metaData.getTables(null, null,
+                            "%", new String[] {"TABLE"});
+                    if (schema.equals("public")) {
+                        while (tables.next()) {
+                            System.out.println(tables.getString("TABLE_NAME"));
+                        }
+                    }
+                }
+            }
+        }
 
     }
 }
