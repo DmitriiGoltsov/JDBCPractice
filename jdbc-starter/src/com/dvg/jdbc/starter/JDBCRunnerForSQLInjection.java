@@ -79,9 +79,7 @@ public class JDBCRunnerForSQLInjection {
             }
 
         }
-
         return idList;
-
     }
 
     private static void checkMetaData() throws SQLException {
