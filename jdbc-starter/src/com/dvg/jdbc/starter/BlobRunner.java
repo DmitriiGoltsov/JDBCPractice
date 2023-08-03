@@ -22,7 +22,7 @@ public class BlobRunner {
                 WHERE id = ?
                 """;
 
-        try (Connection connection = ConnectionManager.openConnection();
+        try (Connection connection = ConnectionManager.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setInt(1, 1);
@@ -47,7 +47,7 @@ public class BlobRunner {
                 WHERE id = 1
                 """;
 
-        try (Connection connection = ConnectionManager.openConnection();
+        try (Connection connection = ConnectionManager.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setBytes(1, Files.readAllBytes(

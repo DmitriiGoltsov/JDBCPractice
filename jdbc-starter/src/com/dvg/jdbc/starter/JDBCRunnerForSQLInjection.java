@@ -3,7 +3,6 @@ package com.dvg.jdbc.starter;
 import com.dvg.jdbc.starter.util.ConnectionManager;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +32,7 @@ public class JDBCRunnerForSQLInjection {
                 WHERE departure_date BETWEEN ? AND ?
                 """;
 
-        try (Connection connection = ConnectionManager.openConnection();
+        try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setFetchSize(3);
@@ -65,7 +64,7 @@ public class JDBCRunnerForSQLInjection {
                 WHERE flight_id = ?
                 """;
 
-        try (Connection connection = ConnectionManager.openConnection();
+        try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setLong(1, flightId);
@@ -83,7 +82,7 @@ public class JDBCRunnerForSQLInjection {
     }
 
     private static void checkMetaData() throws SQLException {
-        try (Connection connection = ConnectionManager.openConnection()) {
+        try (Connection connection = ConnectionManager.getConnection()) {
 
             DatabaseMetaData metaData = connection.getMetaData();
             ResultSet catalogs = metaData.getCatalogs();

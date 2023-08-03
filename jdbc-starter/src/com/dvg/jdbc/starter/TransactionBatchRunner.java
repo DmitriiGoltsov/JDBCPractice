@@ -22,7 +22,7 @@ public class TransactionBatchRunner {
 
         try {
 
-            connection = ConnectionManager.openConnection();
+            connection = ConnectionManager.getConnection();
 
             // С помощью отмены автоматического коммита изменений можно избежать ситуаций,
             // когда ссылающийся ключ будет удалён, а тот, который планировалось удалить изначально нет.

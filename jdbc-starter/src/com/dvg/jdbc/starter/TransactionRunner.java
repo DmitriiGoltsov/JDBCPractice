@@ -29,7 +29,7 @@ public class TransactionRunner {
 
         try {
 
-            connection = ConnectionManager.openConnection();
+            connection = ConnectionManager.getConnection();
             deleteFlightStatement = connection.prepareStatement(deleteFlightQuery);
             deleteTicketStatement = connection.prepareStatement(deleteTicketQuery);
 
