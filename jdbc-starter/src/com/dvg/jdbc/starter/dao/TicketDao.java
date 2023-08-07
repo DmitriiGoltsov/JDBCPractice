@@ -1,5 +1,6 @@
 package com.dvg.jdbc.starter.dao;
 
+import com.dvg.jdbc.starter.dto.TicketFilter;
 import com.dvg.jdbc.starter.entity.TicketEntity;
 import com.dvg.jdbc.starter.exception.DaoException;
 import com.dvg.jdbc.starter.util.ConnectionManager;
@@ -7,7 +8,11 @@ import com.dvg.jdbc.starter.util.ConnectionManager;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.*;
 
 public class TicketDao {
 
@@ -45,6 +50,45 @@ public class TicketDao {
             """;
 
     private TicketDao(){
+    }
+
+    public List<TicketEntity> findAll(TicketFilter filter) {
+
+        List<Object> parameters = new ArrayList<>();
+        List<String> whereSql = new ArrayList<>();
+
+        if (filter.seatNo() != null) {
+            whereSql.add("seat_no LIKE ?");
+            parameters.add("%" + filter.seatNo() + "%");
+        }
+        if (filter.passengerName() != null) {
+            whereSql.add("passenger_name = ?");
+            parameters.add(filter.passengerName());
+        }
+
+        parameters.add(filter.limit());
+        parameters.add(filter.offset());
+
+        var where = whereSql.stream()
+                .collect(joining(" AND ", " WHERE ", " LIMIT ? OFFSET ? "));
+
+        var sql = FIND_ALL_QUERY + where;
+
+        try (var connection = ConnectionManager.getConnection();
+             var preparedStatement = connection.prepareStatement(sql)) {
+            for (int i = 0; i < parameters.size(); i++) {
+                preparedStatement.setObject(i + 1, parameters.get(i));
+            }
+            System.out.println(preparedStatement);
+            var resultSet = preparedStatement.executeQuery();
+            List<TicketEntity> tickets = new ArrayList<>();
+            while (resultSet.next()) {
+                tickets.add(buildTicketEntity(resultSet));
+            }
+            return tickets;
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
+        }
     }
 
     public List<TicketEntity> findALl() {
