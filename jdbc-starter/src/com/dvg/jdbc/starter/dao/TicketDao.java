@@ -5,6 +5,9 @@ import com.dvg.jdbc.starter.exception.DaoException;
 import com.dvg.jdbc.starter.util.ConnectionManager;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class TicketDao {
 
@@ -16,10 +19,109 @@ public class TicketDao {
                 (?, ?, ?, ?, ?)
             """;
 
+    private static final String UPDATE_QUERY  = """
+            UPDATE ticket
+            SET passenger_no = ?,
+                passenger_name = ?,
+                flight_id = ?,
+                seat_no = ?,
+                cost = ?
+            WHERE id = ?            
+            """;
+
+    private static final String FIND_ALL_QUERY = """
+            SELECT 
+                    id, 
+                    passenger_no, 
+                    passenger_name, 
+                    flight_id, 
+                    seat_no, 
+                    cost
+            FROM ticket
+            """;
+
+    private static final String FIND_BY_ID_QUERY = FIND_ALL_QUERY + """
+            WHERE id = ?
+            """;
+
     private TicketDao(){
     }
 
-    public TicketEntity save(TicketEntity ticket) {
+    public List<TicketEntity> findALl() {
+        try (Connection connection = ConnectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_QUERY)) {
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            List<TicketEntity> resultList = new ArrayList<>();
+
+            while (resultSet.next()) {
+                resultList.add(buildTicketEntity(resultSet));
+            }
+
+            return resultList;
+
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
+        }
+    }
+
+        public Optional<TicketEntity> findById(Long id) {
+
+        try (Connection connection = ConnectionManager.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID_QUERY)) {
+
+            preparedStatement.setLong(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            TicketEntity ticketResult = null;
+            if (resultSet.next()) {
+                ticketResult = buildTicketEntity(resultSet);
+            }
+
+            return Optional.ofNullable(ticketResult);
+
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
+        }
+    }
+
+    private static TicketEntity buildTicketEntity(ResultSet resultSet) throws SQLException {
+        TicketEntity ticketResult;
+        ticketResult = new TicketEntity(
+                resultSet.getLong("id"),
+                resultSet.getString("passenger_no"),
+                resultSet.getString("passenger_name"),
+                resultSet.getLong("flight_id"),
+                resultSet.getString("seat_no"),
+                resultSet.getBigDecimal("cost")
+        );
+        return ticketResult;
+    }
+
+    public void update(TicketEntity ticket) {
+
+        try (Connection connection = ConnectionManager.getConnection();
+             PreparedStatement preparedStatement =
+                     connection.prepareStatement(UPDATE_QUERY)) {
+
+            preparedStatement.setString(1, ticket.getPassengerNo());
+            preparedStatement.setString(2, ticket.getPassengerName());
+            preparedStatement.setLong(3, ticket.getFlightId());
+            preparedStatement.setString(4, ticket.getSeatNo());
+            preparedStatement.setBigDecimal(5, ticket.getCost());
+            preparedStatement.setLong(6, ticket.getId());
+
+            preparedStatement.executeUpdate();
+
+
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
+        }
+    }
+
+        public TicketEntity save(TicketEntity ticket) {
 
         try (Connection connection = ConnectionManager.getConnection();
             PreparedStatement preparedStatement =
